@@ -1,0 +1,21 @@
+clc,clear,close all;
+f = checkerboard(8);
+PSF = fspecial('motion', 7, 45);
+gb = imfilter(f, PSF, 'circular');
+noise = imnoise2('gaussian', size(f, 1), size(f, 2), 0, sqrt(0.001));
+g = gb + noise;
+frest1 = deconvwnr(g , PSF);
+Sn = abs(fft2(noise)).^2;
+nA = sum(Sn(:))/numel(noise);
+Sf = abs(fft2(f)).^2;
+fA = sum(Sf(:))/numel(f);
+R = nA/fA;
+frest2 = deconvwnr(g, PSF, R);
+NCORR = fftshift(real(ifft2(Sn)));
+ICORR = fftshift(real(ifft2(Sf)));
+frest3 = deconvwnr(g, PSF, NCORR, ICORR);
+figure
+subplot(221),imshow(pixeldup(g, 8), []);
+subplot(222),imshow(pixeldup(frest1, 8), []);
+subplot(223),imshow(pixeldup(frest2, 8), []);
+subplot(224),imshow(pixeldup(frest3, 8), []);
